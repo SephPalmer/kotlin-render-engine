@@ -7,6 +7,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.example.engine.render.kotlin.kotlinrenderengine.R
+import com.example.engine.render.kotlin.kotlinrenderengine.engine.BasicRenderer
+import kotlinx.android.synthetic.main.render_fragment.*
 
 class RenderFragment : Fragment() {
 
@@ -26,7 +28,8 @@ class RenderFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProviders.of(this).get(RenderViewModel::class.java)
-        // TODO: Use the ViewModel
+        surface.setEGLContextClientVersion(2)
+        surface.setRenderer(context?.let { BasicRenderer() })
     }
 
 }
