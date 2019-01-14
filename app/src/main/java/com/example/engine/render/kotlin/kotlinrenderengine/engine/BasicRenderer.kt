@@ -4,9 +4,9 @@ import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.opengl.Matrix
 import android.os.SystemClock
+import com.example.engine.render.kotlin.kotlinrenderengine.geometry.Cube
 import com.example.engine.render.kotlin.kotlinrenderengine.BuildConfig
 import com.example.engine.render.kotlin.kotlinrenderengine.R
-import com.example.engine.render.kotlin.kotlinrenderengine.geometry.Rectangle
 import com.example.engine.render.kotlin.kotlinrenderengine.geometry.Shape
 import com.example.engine.render.kotlin.kotlinrenderengine.util.*
 import java.nio.ByteBuffer
@@ -46,7 +46,7 @@ class BasicRenderer
     private var vertexCount: Int
 
     init {
-        shape = Rectangle()
+        shape = Cube()
         // Allocate the amount of bytes we require in the native environment
         // and specify whether we they should be big endian or small endian.
         // We just use whichever the system uses
