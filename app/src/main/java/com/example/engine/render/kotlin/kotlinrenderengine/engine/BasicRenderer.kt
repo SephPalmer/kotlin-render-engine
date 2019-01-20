@@ -63,7 +63,7 @@ class BasicRenderer
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
 
         val uptime = SystemClock.uptimeMillis() % 18000L
-        val angle = 0.05f * uptime
+        val angle = 0.15f * uptime
 
         //Create a perspective projection
         Matrix.perspectiveM(
@@ -107,6 +107,8 @@ class BasicRenderer
 
     override fun onSurfaceCreated(p0: GL10?, p1: EGLConfig?) {
         GLES20.glClearColor(1.0f, 0.0f, 0.0f, 0.0f)
+        GLES20.glEnable(GLES20.GL_CULL_FACE)
+        GLES20.glCullFace(GLES20.GL_BACK)
         val vertexShader = readTextFileFromRaw(R.raw.vertex_shader)
         val fragmentShader = readTextFileFromRaw(R.raw.fragment_shader)
         val compiledVertexShader = compileVertexShader(vertexShader)
