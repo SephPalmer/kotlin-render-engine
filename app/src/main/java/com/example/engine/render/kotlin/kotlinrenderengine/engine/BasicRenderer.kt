@@ -62,7 +62,7 @@ class BasicRenderer
     override fun onDrawFrame(p0: GL10?) {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
 
-        val uptime = SystemClock.uptimeMillis() % 18000L
+        val uptime = SystemClock.uptimeMillis() % 28000L
         val angle = 0.15f * uptime
 
         //Create a perspective projection
@@ -78,7 +78,7 @@ class BasicRenderer
         Matrix.setIdentityM(modelMatrix, 0)
         Matrix.translateM(modelMatrix, 0, 0f, 0f, -5f)
         // Rotate the model
-        Matrix.rotateM(modelMatrix, 0, angle, 1.0f, 0.0f, 0.0f)
+        Matrix.rotateM(modelMatrix, 0, angle, 1.0f, 0.3f, 0.0f)
 
         // Rather than adding an extra matrix to the shader for the model matrix
         // We multiply both matrices together and use the result of that
