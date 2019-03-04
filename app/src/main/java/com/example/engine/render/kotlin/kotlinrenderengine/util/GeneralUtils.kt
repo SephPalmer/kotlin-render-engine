@@ -1,7 +1,10 @@
 package com.example.engine.render.kotlin.kotlinrenderengine.util
 
 import android.content.Context
+import android.graphics.BitmapFactory
 import android.opengl.GLES20
+import android.opengl.GLES20.*
+import android.opengl.GLUtils.texImage2D
 import android.util.Log
 import android.widget.Toast
 import com.example.engine.render.kotlin.kotlinrenderengine.App
@@ -97,4 +100,46 @@ fun validateProgram(shaderProgramId: Int): Boolean {
     logD("Shader program validation results - " + shaderValidationStatus[0])
     return shaderValidationStatus[0] != 0
 }
+
+fun loadTexture(context: Context, resourceId: Int): Int {
+    val textureObjectsIds = IntArray(1)
+    GLES20.glGenTextures(1, textureObjectsIds, 0)
+
+    if (textureObjectsIds[0] == 0) {
+        logD("Unable to generate a new OpenGL texture object.")
+    }
+
+    // Set the options so that we ge the original image data rather than a scaled version
+    val options = BitmapFactory.Options()
+    options.inScaled = false
+
+    // The important bit. Try to decode the texture
+    val bitmap = BitmapFactory.decodeResource(context.resources, resourceId, options)
+
+    // If it didn't work, clean up the mess
+    if (bitmap == null) {
+        logD("resource could not be read")
+        GLES20.glDeleteTextures(1, textureObjectsIds, 0)
+    }
+    // Specify that we want to bind a 2D texture to textureId 0
+    GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureObjectsIds[0])
+
+    //Set filters
+    GLES20.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
+    GLES20.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+    // Load the bitmap
+    texImage2D(GL_TEXTURE_2D, 0, bitmap, 0)
+    // Generate mipmaps
+    GLES20.glGenerateMipmap(GL_TEXTURE_2D)
+
+    // Clean up the memory
+    bitmap.recycle()
+
+    // And unbind the texture, so that we don't accidentally make changes.
+    glBindTexture(GL_TEXTURE_2D, 0)
+
+    return 0
+}
+
+
 
