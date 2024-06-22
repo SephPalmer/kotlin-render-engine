@@ -18,71 +18,60 @@ class Torus(
 
         for (i in 0 until majorSegments) {
             val u = i.toFloat() / majorSegments
-            val majorAngle = u * 2 * PI.toFloat()
+            val nextU = (i + 1).toFloat() / majorSegments
 
             for (j in 0 until minorSegments) {
                 val v = j.toFloat() / minorSegments
-                val minorAngle = v * 2 * PI.toFloat()
+                val nextV = (j + 1).toFloat() / minorSegments
 
-                // Calculate position
-                val x = (majorRadius + minorRadius * cos(minorAngle)) * cos(majorAngle)
-                val y = (majorRadius + minorRadius * cos(minorAngle)) * sin(majorAngle)
-                val z = minorRadius * sin(minorAngle)
-
-                // Calculate normal
-                val nx = cos(minorAngle) * cos(majorAngle)
-                val ny = cos(minorAngle) * sin(majorAngle)
-                val nz = sin(minorAngle)
-
-                // Add vertex data (position, normal, color)
-                vertices.addAll(listOf(
-                    x, y, z,                   // Position
-                    nx, ny, nz,                // Normal
-                    0.7f, 0.3f + u, 0.3f + v   // Color (varying for visibility)
-                ))
-
-                // Calculate indices for triangles
-                val nextI = (i + 1) % majorSegments
-                val nextJ = (j + 1) % minorSegments
-                val verticesPerQuad = 6 // Two triangles per quad
+                // Generate vertices for two triangles
+                val v1 = generateVertexData(u, v)
+                val v2 = generateVertexData(nextU, v)
+                val v3 = generateVertexData(u, nextV)
+                val v4 = generateVertexData(nextU, nextV)
 
                 // First triangle
-                vertices.addAll(listOf(
-                    x, y, z,
-                    nx, ny, nz,
-                    0.7f, 0.3f + u, 0.3f + v
-                ))
-                vertices.addAll(generateVertexData(nextI, j))
-                vertices.addAll(generateVertexData(i, nextJ))
+                vertices.addAll(v1)
+                vertices.addAll(v2)
+                vertices.addAll(v3)
 
                 // Second triangle
-                vertices.addAll(generateVertexData(nextI, j))
-                vertices.addAll(generateVertexData(nextI, nextJ))
-                vertices.addAll(generateVertexData(i, nextJ))
+                vertices.addAll(v2)
+                vertices.addAll(v4)
+                vertices.addAll(v3)
             }
         }
 
         return vertices.toFloatArray()
     }
 
-    private fun generateVertexData(i: Int, j: Int): List<Float> {
-        val u = i.toFloat() / majorSegments
-        val v = j.toFloat() / minorSegments
+    private fun generateVertexData(u: Float, v: Float): List<Float> {
         val majorAngle = u * 2 * PI.toFloat()
         val minorAngle = v * 2 * PI.toFloat()
 
-        val x = (majorRadius + minorRadius * cos(minorAngle)) * cos(majorAngle)
-        val y = (majorRadius + minorRadius * cos(minorAngle)) * sin(majorAngle)
-        val z = minorRadius * sin(minorAngle)
+        val cosMinor = cos(minorAngle)
+        val sinMinor = sin(minorAngle)
+        val cosMajor = cos(majorAngle)
+        val sinMajor = sin(majorAngle)
 
-        val nx = cos(minorAngle) * cos(majorAngle)
-        val ny = cos(minorAngle) * sin(majorAngle)
-        val nz = sin(minorAngle)
+        val x = (majorRadius + minorRadius * cosMinor) * cosMajor
+        val y = (majorRadius + minorRadius * cosMinor) * sinMajor
+        val z = minorRadius * sinMinor
+
+        // Calculate normal
+        val nx = cosMinor * cosMajor
+        val ny = cosMinor * sinMajor
+        val nz = sinMinor
+
+        // Generate a color based on position
+        val r = 0.5f + 0.5f * cosMajor
+        val g = 0.5f + 0.5f * sinMajor
+        val b = 0.5f + 0.5f * sinMinor
 
         return listOf(
-            x, y, z,                   // Position
-            nx, ny, nz,                // Normal
-            0.7f, 0.3f + u, 0.3f + v   // Color
+            x, y, z,    // Position
+            nx, ny, nz, // Normal
+            r, g, b     // Color
         )
     }
 }
