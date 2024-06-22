@@ -19,14 +19,17 @@ class BasicRenderer(private val shape: Shape) : GLSurfaceView.Renderer {
 
     companion object {
         private const val VERTEX_POSITION_DIMENSIONS = 3
+        private const val NORMAL_DIMENSIONS = 3
         private const val BYTES_PER_FLOAT = 4
         private const val A_COLOR = "a_Color"
         private const val A_POSITION = "a_Position"
-        private const val U_MATRIX = "u_Matrix"
+        private const val A_NORMAL = "a_Normal"
+        private const val U_MVP = "u_MVP"
+        private const val U_MODEL_MATRIX = "u_ModelMatrix"
+        private const val U_LIGHT_DIRECTION = "u_LightDirection"
         private const val COLOR_COMPONENT_COUNT = 3
-        private const val STRIDE = (VERTEX_POSITION_DIMENSIONS + COLOR_COMPONENT_COUNT) * BYTES_PER_FLOAT
+        private const val STRIDE = (VERTEX_POSITION_DIMENSIONS + NORMAL_DIMENSIONS + COLOR_COMPONENT_COUNT) * BYTES_PER_FLOAT
     }
-
     private var width: Int = 0
     private var height: Int = 0
     private val vertexData: FloatBuffer
@@ -35,21 +38,29 @@ class BasicRenderer(private val shape: Shape) : GLSurfaceView.Renderer {
     private val mvpMatrix = FloatArray(16)
     private var aPositionLocation: Int = 0
     private var aColorLocation: Int = 0
-    private var uMatrixLocation: Int = 0
+    private var aNormalLocation: Int = 0
+    private var uMvpLocation: Int = 0
+    private var uModelMatrixLocation: Int = 0
+    private var uLightDirectionLocation: Int = 0
     private var vertexCount: Int
     private var shaderProgram: Int = 0
 
     private var lastFrameTime: Long = 0
     private var rotationAngle: Float = 0f
 
+    private val lightDirection = floatArrayOf(-0.5f, -1.0f, 1.0f)  // Light coming from above and slightly towards the viewer
+
+
     init {
+        // Assuming shape.vertexPositions now includes normal data
         vertexData = ByteBuffer
             .allocateDirect(shape.vertexPositions.size * BYTES_PER_FLOAT)
             .order(ByteOrder.nativeOrder())
             .asFloatBuffer()
             .apply { put(shape.vertexPositions) }
-        vertexCount = shape.vertexPositions.size / (VERTEX_POSITION_DIMENSIONS + COLOR_COMPONENT_COUNT)
+        vertexCount = shape.vertexPositions.size / (VERTEX_POSITION_DIMENSIONS + NORMAL_DIMENSIONS + COLOR_COMPONENT_COUNT)
     }
+
 
     override fun onDrawFrame(gl: GL10?) {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
@@ -67,9 +78,13 @@ class BasicRenderer(private val shape: Shape) : GLSurfaceView.Renderer {
 
         Matrix.multiplyMM(mvpMatrix, 0, projectionMatrix, 0, modelMatrix, 0)
 
-        GLES20.glUniformMatrix4fv(uMatrixLocation, 1, false, mvpMatrix, 0)
+        GLES20.glUniformMatrix4fv(uMvpLocation, 1, false, mvpMatrix, 0)
+        GLES20.glUniformMatrix4fv(uModelMatrixLocation, 1, false, modelMatrix, 0)
+        GLES20.glUniform3fv(uLightDirectionLocation, 1, lightDirection, 0)
+
         GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, vertexCount)
     }
+
 
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
         this.width = width
@@ -90,9 +105,7 @@ class BasicRenderer(private val shape: Shape) : GLSurfaceView.Renderer {
             shaderProgram = createShaderProgram()
             setupShaderAttributes()
         } catch (e: ShaderCompilationException) {
-            // Log error and handle gracefully
             Log.e("BasicRenderer", "Shader compilation failed: ${e.message}")
-            // You might want to set a flag here to prevent rendering
         }
 
         lastFrameTime = System.nanoTime()
@@ -105,7 +118,8 @@ class BasicRenderer(private val shape: Shape) : GLSurfaceView.Renderer {
         val compiledVertexShader = compileShader(GLES20.GL_VERTEX_SHADER, vertexShader)
         val compiledFragmentShader = compileShader(GLES20.GL_FRAGMENT_SHADER, fragmentShader)
 
-        val program: Int = linkProgram(compiledVertexShader, compiledFragmentShader)?: throw Exception("Compiler failed")
+        val program = linkProgram(compiledVertexShader, compiledFragmentShader)
+            ?: throw ShaderCompilationException("Shader program linking failed")
 
         if (BuildConfig.DEBUG) {
             validateProgram(program)
@@ -117,9 +131,12 @@ class BasicRenderer(private val shape: Shape) : GLSurfaceView.Renderer {
     private fun setupShaderAttributes() {
         GLES20.glUseProgram(shaderProgram)
 
-        aColorLocation = GLES20.glGetAttribLocation(shaderProgram, A_COLOR)
         aPositionLocation = GLES20.glGetAttribLocation(shaderProgram, A_POSITION)
-        uMatrixLocation = GLES20.glGetUniformLocation(shaderProgram, U_MATRIX)
+        aColorLocation = GLES20.glGetAttribLocation(shaderProgram, A_COLOR)
+        aNormalLocation = GLES20.glGetAttribLocation(shaderProgram, A_NORMAL)
+        uMvpLocation = GLES20.glGetUniformLocation(shaderProgram, U_MVP)
+        uModelMatrixLocation = GLES20.glGetUniformLocation(shaderProgram, U_MODEL_MATRIX)
+        uLightDirectionLocation = GLES20.glGetUniformLocation(shaderProgram, U_LIGHT_DIRECTION)
 
         vertexData.position(0)
         GLES20.glVertexAttribPointer(
@@ -134,6 +151,17 @@ class BasicRenderer(private val shape: Shape) : GLSurfaceView.Renderer {
 
         vertexData.position(VERTEX_POSITION_DIMENSIONS)
         GLES20.glVertexAttribPointer(
+            aNormalLocation,
+            NORMAL_DIMENSIONS,
+            GLES20.GL_FLOAT,
+            false,
+            STRIDE,
+            vertexData
+        )
+        GLES20.glEnableVertexAttribArray(aNormalLocation)
+
+        vertexData.position(VERTEX_POSITION_DIMENSIONS + NORMAL_DIMENSIONS)
+        GLES20.glVertexAttribPointer(
             aColorLocation,
             COLOR_COMPONENT_COUNT,
             GLES20.GL_FLOAT,
@@ -143,6 +171,7 @@ class BasicRenderer(private val shape: Shape) : GLSurfaceView.Renderer {
         )
         GLES20.glEnableVertexAttribArray(aColorLocation)
     }
+
 
     private fun compileShader(type: Int, shaderCode: String): Int {
         val shaderId = GLES20.glCreateShader(type)

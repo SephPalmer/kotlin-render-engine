@@ -11,6 +11,7 @@ import android.view.ViewGroup
 import com.example.engine.render.kotlin.kotlinrenderengine.R
 import com.example.engine.render.kotlin.kotlinrenderengine.engine.BasicRenderer
 import com.example.engine.render.kotlin.kotlinrenderengine.geometry.Cube
+import com.example.engine.render.kotlin.kotlinrenderengine.geometry.Torus
 
 class RenderFragment : Fragment() {
 
@@ -32,7 +33,7 @@ class RenderFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProviders.of(this).get(RenderViewModel::class.java)
         surface?.setEGLContextClientVersion(2)
-        surface?.setRenderer(context?.let { BasicRenderer(Cube()) })
+        surface?.setRenderer(context?.let { BasicRenderer(Torus()) })
     }
 
 }
