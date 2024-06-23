@@ -1,20 +1,21 @@
 attribute vec4 a_Position;
-attribute vec4 a_Color;
 attribute vec3 a_Normal;
+attribute vec2 a_TexCoord;
 
 uniform mat4 u_MVP;
 uniform mat4 u_ModelMatrix;
 uniform vec3 u_LightDirection;
 
-varying vec4 v_Color;
 varying vec3 v_Normal;
-varying vec3 v_LightDirection;
+varying vec2 v_TexCoord;
+varying float v_Diffuse;
 
 void main() {
-    v_Color = a_Color;
+    v_Normal = vec3(u_ModelMatrix * vec4(a_Normal, 0.0));
+    v_TexCoord = a_TexCoord;
 
-    v_Normal = mat3(u_ModelMatrix) * a_Normal;
-    v_LightDirection = u_LightDirection;
+    vec3 lightDir = normalize(-u_LightDirection);
+    v_Diffuse = max(dot(normalize(v_Normal), lightDir), 0.0);
 
     gl_Position = u_MVP * a_Position;
 }

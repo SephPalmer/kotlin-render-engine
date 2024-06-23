@@ -1,8 +1,8 @@
 package com.example.engine.render.kotlin.kotlinrenderengine.geometry
 
+import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
-import kotlin.math.PI
 
 class Torus(
     private val majorRadius: Float = 0.7f,
@@ -10,7 +10,6 @@ class Torus(
     private val majorSegments: Int = 48,
     private val minorSegments: Int = 24
 ) : Shape {
-
     override val vertexPositions: FloatArray by lazy { generateTorusVertices() }
 
     private fun generateTorusVertices(): FloatArray {
@@ -18,11 +17,11 @@ class Torus(
 
         for (i in 0 until majorSegments) {
             val u = i.toFloat() / majorSegments
-            val nextU = (i + 1).toFloat() / majorSegments
+            val nextU = ((i + 1) % majorSegments).toFloat() / majorSegments
 
             for (j in 0 until minorSegments) {
                 val v = j.toFloat() / minorSegments
-                val nextV = (j + 1).toFloat() / minorSegments
+                val nextV = ((j + 1) % minorSegments).toFloat() / minorSegments
 
                 // Generate vertices for two triangles
                 val v1 = generateVertexData(u, v)
@@ -63,15 +62,10 @@ class Torus(
         val ny = cosMinor * sinMajor
         val nz = sinMinor
 
-        // Generate a color based on position
-        val r = 0.5f + 0.5f * cosMajor
-        val g = 0.5f + 0.5f * sinMajor
-        val b = 0.5f + 0.5f * sinMinor
-
         return listOf(
             x, y, z,    // Position
             nx, ny, nz, // Normal
-            r, g, b     // Color
+            u, v        // Texture coordinates
         )
     }
 }

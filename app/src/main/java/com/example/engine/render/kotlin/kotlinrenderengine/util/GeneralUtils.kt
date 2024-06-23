@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.BitmapFactory
 import android.opengl.GLES20
 import android.opengl.GLES20.*
+import android.opengl.GLUtils
 import android.opengl.GLUtils.texImage2D
 import android.util.Log
 import android.widget.Toast
@@ -37,7 +38,7 @@ fun compileFragmentShader(shaderTextView: String): Int? {
     return compileShader(GLES20.GL_FRAGMENT_SHADER, shaderTextView)
 }
 
-private fun compileShader(shader: Int, shaderText: String): Int? {
+fun compileShader(shader: Int, shaderText: String): Int? {
     logD("Starting shader compilation")
     // Create an empty shader object
     val shaderObjectId = GLES20.glCreateShader(shader)
@@ -101,44 +102,40 @@ fun validateProgram(shaderProgramId: Int): Boolean {
     return shaderValidationStatus[0] != 0
 }
 
-fun loadTexture(context: Context, resourceId: Int): Int {
-    val textureObjectsIds = IntArray(1)
-    GLES20.glGenTextures(1, textureObjectsIds, 0)
 
-    if (textureObjectsIds[0] == 0) {
-        logD("Unable to generate a new OpenGL texture object.")
+fun loadTexture(context: Context, resourceId: Int): Int {
+    val textureObjectIds = IntArray(1)
+    GLES20.glGenTextures(1, textureObjectIds, 0)
+
+    if (textureObjectIds[0] == 0) {
+        Log.e("loadTexture", "Could not generate a new OpenGL texture object.")
+        return 0
     }
 
-    // Set the options so that we ge the original image data rather than a scaled version
     val options = BitmapFactory.Options()
     options.inScaled = false
 
-    // The important bit. Try to decode the texture
     val bitmap = BitmapFactory.decodeResource(context.resources, resourceId, options)
 
-    // If it didn't work, clean up the mess
     if (bitmap == null) {
-        logD("resource could not be read")
-        GLES20.glDeleteTextures(1, textureObjectsIds, 0)
+        Log.e("loadTexture", "Resource ID $resourceId could not be decoded.")
+        GLES20.glDeleteTextures(1, textureObjectIds, 0)
+        return 0
     }
-    // Specify that we want to bind a 2D texture to textureId 0
-    GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureObjectsIds[0])
 
-    //Set filters
-    GLES20.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
-    GLES20.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-    // Load the bitmap
-    texImage2D(GL_TEXTURE_2D, 0, bitmap, 0)
-    // Generate mipmaps
-    GLES20.glGenerateMipmap(GL_TEXTURE_2D)
+    GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureObjectIds[0])
 
-    // Clean up the memory
+    GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR_MIPMAP_LINEAR)
+    GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR)
+
+    GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0)
+    GLES20.glGenerateMipmap(GLES20.GL_TEXTURE_2D)
+
     bitmap.recycle()
 
-    // And unbind the texture, so that we don't accidentally make changes.
-    glBindTexture(GL_TEXTURE_2D, 0)
+    GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
 
-    return 0
+    return textureObjectIds[0]
 }
 
 

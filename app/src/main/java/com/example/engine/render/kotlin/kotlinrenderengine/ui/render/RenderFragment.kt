@@ -33,7 +33,7 @@ class RenderFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProviders.of(this).get(RenderViewModel::class.java)
         surface?.setEGLContextClientVersion(2)
-        surface?.setRenderer(context?.let { BasicRenderer(Torus()) })
+        surface?.setRenderer(context?.let { BasicRenderer(it, Torus()) })
     }
 
 }
