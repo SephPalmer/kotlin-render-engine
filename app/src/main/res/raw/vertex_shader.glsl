@@ -15,7 +15,8 @@ void main() {
     v_TexCoord = a_TexCoord;
 
     vec3 lightDir = normalize(-u_LightDirection);
-    v_Diffuse = max(dot(normalize(v_Normal), lightDir), 0.0);
+    // Increase the diffuse factor by multiplying it (e.g., by 1.5)
+    v_Diffuse = max(dot(normalize(v_Normal), lightDir), 0.0) * 1.5;
 
     gl_Position = u_MVP * a_Position;
 }

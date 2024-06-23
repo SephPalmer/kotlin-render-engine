@@ -55,7 +55,7 @@ class BasicRenderer(private val context: Context, private val shape: Shape) :
 
     private var textureHandle: Int = 0
 
-    private val lightDirection = floatArrayOf(-0.5f, -1.0f, 1.0f)
+    private val lightDirection = floatArrayOf(0.5f, -1.0f, -0.5f)
 
     init {
         vertexData = ByteBuffer
