@@ -5,6 +5,7 @@ attribute vec2 a_TexCoord;
 uniform mat4 u_MVP;
 uniform mat4 u_ModelMatrix;
 uniform vec3 u_LightDirection;
+uniform float u_LightIntensity;
 
 varying vec3 v_Normal;
 varying vec2 v_TexCoord;
@@ -15,8 +16,7 @@ void main() {
     v_TexCoord = a_TexCoord;
 
     vec3 lightDir = normalize(-u_LightDirection);
-    // Increase the diffuse factor by multiplying it (e.g., by 1.5)
-    v_Diffuse = max(dot(normalize(v_Normal), lightDir), 0.0) * 1.5;
+    v_Diffuse = max(dot(normalize(v_Normal), lightDir), 0.0) * u_LightIntensity;
 
     gl_Position = u_MVP * a_Position;
 }

@@ -55,6 +55,8 @@ class BasicRenderer(private val context: Context, private val shape: Shape) :
 
     private var textureHandle: Int = 0
 
+    private lateinit var lightControl: LightControl
+
     private val lightDirection = floatArrayOf(0.5f, -1.0f, -0.5f)
 
     init {
@@ -84,6 +86,11 @@ class BasicRenderer(private val context: Context, private val shape: Shape) :
         if (textureHandle == 0) {
             Log.e("BasicRenderer", "Failed to load texture")
         }
+
+        lightControl = LightControl()
+        lightControl.setDirection(-0.5f, -1.0f, 1.0f)
+        lightControl.intensity = 1.2f
+        lightControl.ambientStrength = 0.2f
     }
 
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
@@ -108,13 +115,18 @@ class BasicRenderer(private val context: Context, private val shape: Shape) :
         Matrix.multiplyMM(mvpMatrix, 0, projectionMatrix, 0, modelMatrix, 0)
         GLES20.glUniformMatrix4fv(uMvpLocation, 1, false, mvpMatrix, 0)
         GLES20.glUniformMatrix4fv(uModelMatrixLocation, 1, false, modelMatrix, 0)
-        GLES20.glUniform3fv(uLightDirectionLocation, 1, lightDirection, 0)
+
+        // Apply light settings
+        lightControl.applyToShader(shaderProgram)
 
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureHandle)
         GLES20.glUniform1i(uTextureLocation, 0)
 
         GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, vertexCount)
+
+        // Rotate light for dynamic effect (optional)
+        lightControl.rotateY(0.01f)
     }
 
     private fun createShaderProgram(): Int {
