@@ -11,6 +11,7 @@ class LightControl {
 
     private var angleX: Float = 0f
     private var angleY: Float = 0f
+    var isRotating: Boolean = false
 
     fun setDirection(x: Float, y: Float, z: Float) {
         direction = floatArrayOf(x, y, z)
@@ -18,13 +19,17 @@ class LightControl {
     }
 
     fun rotateX(angle: Float) {
-        angleX += angle
-        updateDirection()
+        if (isRotating) {
+            angleX += angle
+            updateDirection()
+        }
     }
 
     fun rotateY(angle: Float) {
-        angleY += angle
-        updateDirection()
+        if (isRotating) {
+            angleY += angle
+            updateDirection()
+        }
     }
 
     private fun updateDirection() {

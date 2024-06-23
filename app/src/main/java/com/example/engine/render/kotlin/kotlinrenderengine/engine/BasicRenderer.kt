@@ -69,6 +69,7 @@ class BasicRenderer(private val context: Context, private val shape: Shape) :
             shape.vertexPositions.size / (VERTEX_POSITION_DIMENSIONS + NORMAL_DIMENSIONS + TEXTURE_COORDINATE_DIMENSIONS)
     }
 
+
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
         GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f)
         GLES20.glEnable(GLES20.GL_DEPTH_TEST)
@@ -88,10 +89,12 @@ class BasicRenderer(private val context: Context, private val shape: Shape) :
         }
 
         lightControl = LightControl()
-        lightControl.setDirection(-0.5f, -1.0f, 1.0f)
-        lightControl.intensity = 1.2f
+        lightControl.setDirection(0.5f, -1.0f, -0.5f)
+        lightControl.intensity = 1.5f
         lightControl.ambientStrength = 0.2f
+        lightControl.isRotating = false  // Set to true if you want the light to rotate
     }
+
 
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
         this.width = width
@@ -125,7 +128,7 @@ class BasicRenderer(private val context: Context, private val shape: Shape) :
 
         GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, vertexCount)
 
-        // Rotate light for dynamic effect (optional)
+        // Rotate light only if isRotating is true
         lightControl.rotateY(0.01f)
     }
 
