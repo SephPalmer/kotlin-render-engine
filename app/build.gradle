@@ -17,6 +17,7 @@ android {
     defaultConfig {
         applicationId "com.example.engine.render.kotlin.kotlinrenderengine"
         minSdkVersion 19
+        targetSdk 34
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
